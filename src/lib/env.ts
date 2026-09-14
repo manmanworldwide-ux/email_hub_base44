@@ -24,8 +24,12 @@ function int(name: string, fallback: number): number {
  * succeeds without secrets and misconfiguration surfaces at request time.
  */
 export const env = {
+  /** Public origin of this deployment. Falls back to Vercel's per-deployment URL (previews), then localhost. */
   get appUrl(): string {
-    return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    if (explicit) return explicit.replace(/\/$/, "");
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+    return "http://localhost:3000";
   },
   get supabaseUrl(): string {
     return required("NEXT_PUBLIC_SUPABASE_URL");
