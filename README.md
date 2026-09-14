@@ -90,7 +90,7 @@ npm run dev
 
 1. Import the repo, set every variable from `.env.example` (use your production URL for `NEXT_PUBLIC_APP_URL`).
 2. Add the production redirect URIs to Google, Azure and Supabase.
-3. `vercel.json` schedules `/api/cron/sync` every 10 minutes; Vercel sends `Authorization: Bearer $CRON_SECRET` automatically.
+3. `vercel.json` schedules `/api/cron/sync` once a day (`0 6 * * *`), which is the most a **Hobby** plan allows - a more frequent schedule makes the deployment fail. Vercel sends `Authorization: Bearer $CRON_SECRET` automatically. On a **Pro** plan change the schedule to e.g. `*/10 * * * *`; on Hobby, point an external scheduler (cron-job.org, GitHub Actions, n8n…) at `GET https://<app>/api/cron/sync` with the same bearer header for frequent syncs. Users can always press **Sync** in the UI or call `POST /api/v1/sync`.
 4. Sign up once to become admin, then invite your team from **Administration → Invitations**.
 
 ## User management (admins)

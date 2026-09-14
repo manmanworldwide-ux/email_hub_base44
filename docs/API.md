@@ -167,4 +167,4 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 
 ## Scheduled sync
 
-`GET|POST /api/cron/sync` with `Authorization: Bearer <CRON_SECRET>` syncs every active mailbox for all users (used by `vercel.json` every 10 minutes). Use any external scheduler if not on Vercel.
+`GET|POST /api/cron/sync` with `Authorization: Bearer <CRON_SECRET>` syncs the least-recently-synced active mailboxes (5 per call, `?limit=` up to 50). `vercel.json` runs it daily (the Vercel Hobby maximum); call it from any external scheduler for more frequent syncs.
