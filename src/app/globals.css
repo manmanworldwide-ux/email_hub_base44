@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Brand / UI palette */
+  --color-brand-50: #eef4fd;
+  --color-brand-100: #d9e6fb;
+  --color-brand-200: #b7d3f6;
+  --color-brand-300: #86b6ef;
+  --color-brand-400: #5598e7;
+  --color-brand-500: #2a78d6;
+  --color-brand-600: #256abf;
+  --color-brand-700: #1c5cab;
+  --color-brand-800: #184f95;
+  --color-brand-900: #0d366b;
+
+  /* Data-viz categorical slots (validated order, light surface) */
+  --color-viz-1: #2a78d6;
+  --color-viz-2: #eb6834;
+  --color-viz-3: #1baf7a;
+  --color-viz-4: #eda100;
+  --color-viz-5: #e87ba4;
+  --color-viz-6: #008300;
+  --color-viz-7: #4a3aa7;
+  --color-viz-8: #e34948;
+
+  /* Status (reserved) */
+  --color-status-good: #0ca30c;
+  --color-status-warning: #fab219;
+  --color-status-serious: #ec835a;
+  --color-status-critical: #d03b3b;
+}
+
+:root {
+  --surface: #fcfcfb;
+  --page: #f4f4f1;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --line: #e1e0d9;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.email-body {
+  font-size: 14px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+.email-body img {
+  max-width: 100%;
+  height: auto;
+}
+.email-body a {
+  color: #256abf;
+  text-decoration: underline;
+}
+.email-body table {
+  max-width: 100%;
+}
+.email-body blockquote {
+  border-left: 3px solid #e1e0d9;
+  margin: 0.5rem 0;
+  padding-left: 0.75rem;
+  color: #52514e;
+}
+
+.prose-chat p + p {
+  margin-top: 0.5rem;
+}
+
+@keyframes tour-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.tour-card {
+  animation: tour-pop 220ms ease-out;
+}
+
+@media (max-width: 1023px) {
+  .tour-card {
+    max-width: 92vw;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d3cc;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}

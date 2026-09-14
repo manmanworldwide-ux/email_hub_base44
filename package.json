@@ -1,0 +1,35 @@
+{
+  "name": "email-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Email Hub - unified Gmail + Outlook inbox with AI analysis, assistant, calendar scheduling and a secure external API",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "gen:key": "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.43.0",
+    "next": "^15.5.25",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}
