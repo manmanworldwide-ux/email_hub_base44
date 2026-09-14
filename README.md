@@ -21,6 +21,7 @@ Stack: **Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · Supabase (Au
 ```
 supabase/migrations/0001_initial.sql   Core schema (accounts, emails, analyses, events, API keys, assistant)
 supabase/migrations/0002_saas.sql      Roles, workspace settings, invitations, AI integrations, RLS + signup guard
+supabase/migrations/0003_connectors.sql In-app Gmail/Outlook OAuth client credentials (admin-managed)
 src/app/(app)/*                        Dashboard, inbox, compose, calendar, assistant, insights, accounts, settings/*, admin/*
 src/app/login, src/app/invite/[token]  Public auth pages
 src/app/api/v1/*                       External + internal JSON API (API key or session auth)
@@ -58,29 +59,24 @@ npm run gen:key   # run twice: TOKEN_ENCRYPTION_KEY and CRON_SECRET
 
 The **first account that signs up becomes the administrator** (the login page shows a "Create admin" tab while no users exist). Afterwards sign-ups are blocked at the database level unless an admin enables *Allow self sign-up* or the email has a pending invitation. Optionally set `ADMIN_EMAILS=you@company.com` to always promote specific accounts.
 
-### 4. Google OAuth (Gmail + Calendar)
+### 4. Mail connectors (Gmail + Outlook) - one-time, in-app
 
-1. Google Cloud Console → enable **Gmail API** and **Google Calendar API**.
-2. OAuth consent screen: scopes `gmail.modify`, `calendar`, `openid`, `email`, `profile`; add test users while in testing mode.
-3. Credentials → OAuth client ID (Web) → redirect URI `<app>/api/auth/google/callback`.
-4. Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+Google and Microsoft require the *application* to be registered once. End users never touch a console: they click **Add mailbox**, pick Gmail or Outlook, sign in to their own account in a popup and approve access.
 
-### 5. Microsoft OAuth (Outlook Mail + Calendar)
+As an administrator open **Administration → Mail connectors**. Each provider card shows the exact redirect URI to register, a step-by-step guide and a form for the client ID/secret. Credentials are stored encrypted and take effect immediately (no redeploy). Environment variables (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_ID`/`MICROSOFT_CLIENT_SECRET`/`MICROSOFT_TENANT`) still work as a fallback.
 
-1. Azure Portal → App registrations → New (*Accounts in any organizational directory and personal Microsoft accounts*).
-2. Redirect URI (Web): `<app>/api/auth/microsoft/callback`.
-3. Certificates & secrets → new client secret.
-4. API permissions (Graph, delegated): `openid profile email offline_access User.Read Mail.ReadWrite Mail.Send Calendars.ReadWrite`.
-5. Set `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` (`MICROSOFT_TENANT=common`).
+**Google** (Gmail API + Google Calendar API enabled): OAuth consent screen with scopes `gmail.modify` and `calendar` - choose *Internal* if all users belong to your Workspace organisation (no verification needed); an *External* app in Testing mode only admits listed test users, and publishing it to arbitrary Gmail users requires Google's verification because Gmail scopes are restricted. Create an OAuth client ID (Web application) with redirect URI `<app>/api/auth/google/callback`.
 
-### 6. AI
+**Microsoft** (App registration, *Accounts in any organizational directory and personal Microsoft accounts*): redirect URI (Web) `<app>/api/auth/microsoft/callback`, a client secret, and delegated Graph permissions `openid profile email offline_access User.Read Mail.ReadWrite Mail.Send Calendars.ReadWrite`. Personal accounts and your own tenant connect directly; other work tenants may require their admin to grant consent once (or publisher verification).
+
+### 5. AI
 
 Two options that can coexist:
 
 - **Platform AI** – set `ANTHROPIC_API_KEY` (and optionally `AI_MODEL`, default `claude-opus-5`). Users without their own provider use it. Admins can switch this off under Administration → Workspace settings.
 - **Bring your own key** – each user adds a provider under Settings → AI provider (Anthropic, OpenAI, Gemini, or an OpenAI-compatible base URL), tests it, and sets it as default.
 
-### 7. Run
+### 6. Run
 
 ```bash
 npm run dev
@@ -97,6 +93,7 @@ npm run dev
 
 - **Invitations** – generate a link (role, API-token permission, validity). Share it any way you like; the invitee opens it, sets a password and lands in the hub with the tour running. Links are one-time and can be revoked.
 - **Users** – change role, toggle *API tokens* (lets a user connect AI agents), disable/enable, delete, or generate a **password-reset link** (also no email required).
+- **Mail connectors** – paste the Google / Microsoft OAuth client credentials once; users then connect their own mailboxes through a popup.
 - **Workspace settings** – allow self sign-up, default API-token permission, invitation validity, offer platform AI, workspace name.
 
 ## Giving Base44 (or any agent) access

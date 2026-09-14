@@ -13,6 +13,7 @@ export const metadata = { title: "API access" };
 const METHOD_TONE: Record<string, "brand" | "good" | "warning" | "critical"> = {
   GET: "brand",
   POST: "good",
+  PUT: "warning",
   PATCH: "warning",
   DELETE: "critical",
 };

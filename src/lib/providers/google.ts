@@ -14,6 +14,7 @@ import type {
   TokenSet,
 } from "@/types";
 import { base64UrlDecode, base64UrlEncode, buildRfc822, parseAddressList, replySubject } from "./mime";
+import { requireOAuthCredentials } from "./credentials";
 import {
   expiresAtFrom,
   formEncode,
@@ -194,9 +195,10 @@ export const googleProvider: MailProvider = {
   id: "google",
   label: "Gmail",
 
-  getAuthUrl(state) {
+  async getAuthUrl(state) {
+    const creds = await requireOAuthCredentials("google");
     const params = new URLSearchParams({
-      client_id: env.google.clientId,
+      client_id: creds.clientId,
       redirect_uri: redirectUri(),
       response_type: "code",
       scope: GOOGLE_SCOPES.join(" "),
@@ -209,13 +211,14 @@ export const googleProvider: MailProvider = {
   },
 
   async exchangeCode(code) {
+    const creds = await requireOAuthCredentials("google");
     const data = await providerFetch<GoogleTokenResponse>("google", TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formEncode({
         code,
-        client_id: env.google.clientId,
-        client_secret: env.google.clientSecret,
+        client_id: creds.clientId,
+        client_secret: creds.clientSecret,
         redirect_uri: redirectUri(),
         grant_type: "authorization_code",
       }),
@@ -224,13 +227,14 @@ export const googleProvider: MailProvider = {
   },
 
   async refreshAccessToken(refreshToken) {
+    const creds = await requireOAuthCredentials("google");
     const data = await providerFetch<GoogleTokenResponse>("google", TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formEncode({
         refresh_token: refreshToken,
-        client_id: env.google.clientId,
-        client_secret: env.google.clientSecret,
+        client_id: creds.clientId,
+        client_secret: creds.clientSecret,
         grant_type: "refresh_token",
       }),
     });

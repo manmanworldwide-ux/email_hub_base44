@@ -6,6 +6,8 @@ import { listEmails } from "@/lib/hub/emails";
 import { listEvents } from "@/lib/hub/calendar";
 import { getAnalyticsSummary } from "@/lib/hub/analytics";
 import { hasLlmForUser } from "@/lib/ai/llm";
+import { providerAvailability } from "@/lib/providers/credentials";
+import { AddMailboxButton } from "@/components/connect-mailbox";
 import { StatTile } from "@/components/charts";
 import { EmailRow } from "@/components/email-row";
 import { SyncAccountButton } from "@/components/account-actions";
@@ -21,7 +23,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const now = new Date();
   const in7d = new Date(now.getTime() + 7 * 86_400_000);
 
-  const [accounts, summary, recent, needsReply, events, hasAi, apiKeys] = await Promise.all([
+  const [accounts, summary, recent, needsReply, events, hasAi, apiKeys, availability] = await Promise.all([
     listAccounts(supabase, user.id),
     getAnalyticsSummary(supabase, user.id, 7),
     listEmails(supabase, user.id, { limit: 8, offset: 0, folder: "inbox" }),
@@ -29,7 +31,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     listEvents(supabase, user.id, { limit: 6, from: now.toISOString(), to: in7d.toISOString() }),
     hasLlmForUser(supabase, user.id),
     supabase.from("api_keys").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("revoked_at", null),
+    providerAvailability(),
   ]);
+  const isAdmin = user.role === "admin";
 
   const onboarding = {
     hasAccounts: accounts.length > 0,
@@ -81,10 +85,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               Connect two or more Gmail and Outlook accounts. Email Hub syncs messages and calendars into one place, analyses them with AI and exposes everything through the assistant and the API.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <LinkButton href="/api/auth/google">Connect Gmail</LinkButton>
-              <LinkButton href="/api/auth/microsoft" variant="secondary">
-                Connect Outlook
-              </LinkButton>
+              <AddMailboxButton availability={availability} isAdmin={isAdmin} label="Add your first mailbox" />
+              {isAdmin && !availability.google && !availability.microsoft ? (
+                <LinkButton href="/admin/connectors" variant="secondary">
+                  Set up Gmail / Outlook connectors
+                </LinkButton>
+              ) : null}
             </div>
           </div>
         </Card>

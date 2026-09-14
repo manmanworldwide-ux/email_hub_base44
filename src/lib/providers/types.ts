@@ -25,7 +25,7 @@ export interface SendResult {
 export interface MailProvider {
   readonly id: Provider;
   readonly label: string;
-  getAuthUrl(state: string): string;
+  getAuthUrl(state: string): Promise<string>;
   exchangeCode(code: string): Promise<TokenSet>;
   refreshAccessToken(refreshToken: string): Promise<TokenSet>;
   getProfile(accessToken: string): Promise<ProviderProfile>;

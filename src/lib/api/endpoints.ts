@@ -1,6 +1,6 @@
 import type { Scope } from "@/lib/api/auth";
 
-export type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface EndpointDoc {
   method: HttpMethod;
@@ -471,6 +471,40 @@ export const ENDPOINTS: EndpointDoc[] = [
     method: "DELETE",
     path: "/api/v1/admin/invitations/{id}",
     summary: "Revoke an invitation",
+    tag: "Admin",
+    scope: "admin",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/admin/connectors",
+    summary: "Mail connector status",
+    description: "Whether Gmail and Outlook OAuth clients are configured (in-app or via environment) and the redirect URIs to register.",
+    tag: "Admin",
+    scope: "admin",
+  },
+  {
+    method: "PUT",
+    path: "/api/v1/admin/connectors",
+    summary: "Save Gmail / Outlook OAuth client",
+    description: "Stores the client id and (encrypted) secret so users can connect mailboxes without any redeploy. Omit client_secret to keep the stored one.",
+    tag: "Admin",
+    scope: "admin",
+    body: {
+      type: "object",
+      required: ["provider", "client_id"],
+      properties: {
+        provider: { type: "string", enum: ["google", "microsoft"] },
+        client_id: { type: "string" },
+        client_secret: { type: "string" },
+        tenant: { type: "string", description: "Microsoft only: common, consumers, organizations or a tenant id" },
+        enabled: { type: "boolean" },
+      },
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/api/v1/admin/connectors/{provider}",
+    summary: "Remove in-app OAuth client",
     tag: "Admin",
     scope: "admin",
   },

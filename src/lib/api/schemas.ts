@@ -156,6 +156,14 @@ export const adminSettingsSchema = z.object({
   invitation_expiry_days: z.number().int().min(1).max(90).optional(),
 });
 
+export const connectorSchema = z.object({
+  provider: z.enum(["google", "microsoft"]),
+  client_id: z.string().min(8).max(300),
+  client_secret: z.string().min(4).max(500).nullable().optional(),
+  tenant: z.string().max(120).nullable().optional(),
+  enabled: z.boolean().optional(),
+});
+
 export const acceptInvitationSchema = z.object({
   token: z.string().min(10).max(200),
   password: z.string().min(8).max(200),

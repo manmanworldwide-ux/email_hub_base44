@@ -21,6 +21,7 @@ import {
   type ReplyParams,
   type SendResult,
 } from "./types";
+import { requireOAuthCredentials } from "./credentials";
 
 const GRAPH = "https://graph.microsoft.com/v1.0";
 
@@ -81,7 +82,7 @@ const EVENT_SELECT = [
 const MAIL_HEADERS = { Prefer: 'outlook.body-content-type="html", IdType="ImmutableId"' };
 const CAL_HEADERS = { Prefer: 'outlook.timezone="UTC"' };
 
-const authority = () => `https://login.microsoftonline.com/${env.microsoft.tenant}/oauth2/v2.0`;
+const authority = (tenant: string) => `https://login.microsoftonline.com/${tenant || "common"}/oauth2/v2.0`;
 const redirectUri = () => `${env.appUrl}/api/auth/microsoft/callback`;
 
 interface MsTokenResponse {
@@ -264,9 +265,10 @@ export const microsoftProvider: MailProvider = {
   id: "microsoft",
   label: "Outlook",
 
-  getAuthUrl(state) {
+  async getAuthUrl(state) {
+    const creds = await requireOAuthCredentials("microsoft");
     const params = new URLSearchParams({
-      client_id: env.microsoft.clientId,
+      client_id: creds.clientId,
       response_type: "code",
       redirect_uri: redirectUri(),
       response_mode: "query",
@@ -274,16 +276,17 @@ export const microsoftProvider: MailProvider = {
       state,
       prompt: "select_account",
     });
-    return `${authority()}/authorize?${params.toString()}`;
+    return `${authority(creds.tenant)}/authorize?${params.toString()}`;
   },
 
   async exchangeCode(code) {
-    const data = await providerFetch<MsTokenResponse>("microsoft", `${authority()}/token`, {
+    const creds = await requireOAuthCredentials("microsoft");
+    const data = await providerFetch<MsTokenResponse>("microsoft", `${authority(creds.tenant)}/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formEncode({
-        client_id: env.microsoft.clientId,
-        client_secret: env.microsoft.clientSecret,
+        client_id: creds.clientId,
+        client_secret: creds.clientSecret,
         code,
         redirect_uri: redirectUri(),
         grant_type: "authorization_code",
@@ -294,12 +297,13 @@ export const microsoftProvider: MailProvider = {
   },
 
   async refreshAccessToken(refreshToken) {
-    const data = await providerFetch<MsTokenResponse>("microsoft", `${authority()}/token`, {
+    const creds = await requireOAuthCredentials("microsoft");
+    const data = await providerFetch<MsTokenResponse>("microsoft", `${authority(creds.tenant)}/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formEncode({
-        client_id: env.microsoft.clientId,
-        client_secret: env.microsoft.clientSecret,
+        client_id: creds.clientId,
+        client_secret: creds.clientSecret,
         refresh_token: refreshToken,
         grant_type: "refresh_token",
         scope: MICROSOFT_SCOPES.join(" "),

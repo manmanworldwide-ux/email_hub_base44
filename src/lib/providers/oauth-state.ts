@@ -10,6 +10,8 @@ export interface OAuthStatePayload {
   userId: string;
   provider: Provider;
   next: string;
+  /** True when the flow runs in a popup window; the callback then posts a message and closes. */
+  popup: boolean;
   state: string;
   ts: number;
 }
@@ -19,11 +21,12 @@ function sign(data: string): string {
 }
 
 /** Creates a random OAuth `state` and a signed cookie value binding it to the user. */
-export function createOAuthState(input: { userId: string; provider: Provider; next?: string }) {
+export function createOAuthState(input: { userId: string; provider: Provider; next?: string; popup?: boolean }) {
   const payload: OAuthStatePayload = {
     userId: input.userId,
     provider: input.provider,
     next: input.next ?? "/accounts",
+    popup: Boolean(input.popup),
     state: randomToken(16),
     ts: Date.now(),
   };

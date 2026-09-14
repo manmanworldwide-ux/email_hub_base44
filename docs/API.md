@@ -60,7 +60,7 @@ Common codes: `unauthorized`, `invalid_api_key`, `api_key_expired`, `insufficien
 | POST | `/api/v1/accounts/{id}/sync` | `sync:trigger` | Sync one mailbox now |
 | POST | `/api/v1/sync` | `sync:trigger` | Sync all mailboxes. Body (optional): `{ account_id?, calendar?, analyze? }` |
 
-Connecting a mailbox is done in the UI (OAuth): `/api/auth/google`, `/api/auth/microsoft`.
+Connecting a mailbox is done in the UI (OAuth): `/api/auth/google`, `/api/auth/microsoft` (append `?popup=1` to run the flow in a popup window; the callback then posts `{ source: "email-hub", type: "oauth-result", ok, email }` to the opener and closes).
 
 ### Emails
 | Method | Path | Scope | Description |
@@ -131,6 +131,9 @@ If the user has no enabled integration and the admin allows platform AI, request
 | GET | `/api/v1/admin/invitations` | Invitation / reset link history |
 | POST | `/api/v1/admin/invitations` | `{ email, role?, can_create_api_keys?, expires_in_days?, note? }` → includes `url` once |
 | DELETE | `/api/v1/admin/invitations/{id}` | Revoke a pending link |
+| GET | `/api/v1/admin/connectors` | Gmail/Outlook OAuth client status + redirect URIs to register |
+| PUT | `/api/v1/admin/connectors` | `{ provider: google|microsoft, client_id, client_secret?, tenant?, enabled? }` (secret kept if omitted) |
+| DELETE | `/api/v1/admin/connectors/{provider}` | Remove in-app credentials (falls back to env vars) |
 | GET | `/api/v1/admin/settings` | Workspace settings |
 | PATCH | `/api/v1/admin/settings` | `{ app_name?, allow_self_signup?, allow_platform_ai?, default_can_create_api_keys?, invitation_expiry_days? }` |
 
