@@ -320,6 +320,22 @@ export const ENDPOINTS: EndpointDoc[] = [
     },
   },
   {
+    method: "GET",
+    path: "/api/v1/calendar/upcoming",
+    summary: "Events starting soon (for reminders)",
+    description:
+      "Events starting within the next N minutes across all calendars, soonest first, each with minutes_until_start. Pass refresh=true to re-pull the calendars from Google/Microsoft first (needs sync:trigger) so nothing added outside the hub is missed. Poll this every few minutes to drive reminders.",
+    tag: "Calendar",
+    scope: "calendar:read",
+    query: {
+      within_minutes: "1-1440, default 60",
+      refresh: "true to refresh calendars first (calendar-only sync, a few seconds)",
+      include_in_progress: "default true; false hides events that already started",
+      account_id: "Restrict to one mailbox (uuid)",
+      limit: "1-200, default 50",
+    },
+  },
+  {
     method: "POST",
     path: "/api/v1/calendar/events",
     summary: "Schedule a meeting",

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError, badRequest, notFound } from "@/lib/api/errors";
 import { getProvider } from "@/lib/providers";
-import { getAccessToken, getAccountRow } from "@/lib/hub/accounts";
+import { getAccessToken, getAccountRow, listAccountRows } from "@/lib/hub/accounts";
 import type { Address, CalendarEventRow, ConnectedAccountRow, NormalizedEvent } from "@/types";
 
 export interface EventFilters {
@@ -105,6 +105,69 @@ export async function deleteEvent(db: SupabaseClient, userId: string, eventId: s
   const token = await getAccessToken(db, account);
   await provider.deleteEvent(token, event.provider_event_id);
   await db.from("calendar_events").delete().eq("id", event.id);
+}
+
+export interface CalendarRefreshResult {
+  account_id: string;
+  email: string;
+  provider: string;
+  status: "ok" | "error";
+  events: number;
+  error?: string;
+}
+
+/**
+ * Calendar-only refresh for every active account (no mail sync), using a short window so it
+ * completes in a few seconds. Used by the "upcoming events" endpoint that agents poll for reminders.
+ */
+export async function refreshCalendars(db: SupabaseClient, userId: string, options: { accountId?: string; daysAhead?: number } = {}): Promise<CalendarRefreshResult[]> {
+  const accounts = (await listAccountRows(db, userId)).filter((a) => a.status !== "disabled" && (!options.accountId || a.id === options.accountId));
+  const results: CalendarRefreshResult[] = [];
+  await Promise.all(
+    accounts.map(async (account) => {
+      try {
+        const token = await getAccessToken(db, account);
+        const events = await syncCalendarForAccount(db, account, token, 1, options.daysAhead ?? 14);
+        results.push({ account_id: account.id, email: account.email, provider: account.provider, status: "ok", events });
+      } catch (error) {
+        results.push({
+          account_id: account.id,
+          email: account.email,
+          provider: account.provider,
+          status: "error",
+          events: 0,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }),
+  );
+  return results;
+}
+
+export type UpcomingEvent = CalendarEventWithAccount & { minutes_until_start: number; in_progress: boolean };
+
+/** Events starting (or already running) within the next `withinMinutes`, soonest first. */
+export async function listUpcomingEvents(
+  db: SupabaseClient,
+  userId: string,
+  options: { withinMinutes: number; accountId?: string; limit?: number; includeInProgress?: boolean },
+): Promise<{ now: string; window_end: string; events: UpcomingEvent[] }> {
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + options.withinMinutes * 60_000);
+  const events = await listEvents(db, userId, {
+    accountId: options.accountId,
+    from: now.toISOString(),
+    to: windowEnd.toISOString(),
+    limit: options.limit ?? 50,
+  });
+  const upcoming = events
+    .map((e) => {
+      const start = new Date(e.start_at).getTime();
+      return { ...e, minutes_until_start: Math.round((start - now.getTime()) / 60_000), in_progress: start <= now.getTime() };
+    })
+    .filter((e) => (options.includeInProgress ?? true) || !e.in_progress)
+    .sort((a, b) => a.minutes_until_start - b.minutes_until_start);
+  return { now: now.toISOString(), window_end: windowEnd.toISOString(), events: upcoming };
 }
 
 /** Pulls events for one account into the local store for the sync window. */

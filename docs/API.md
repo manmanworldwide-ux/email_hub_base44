@@ -104,6 +104,7 @@ If the user has no enabled integration and the admin allows platform AI, request
 | Method | Path | Scope | Description |
 |---|---|---|---|
 | GET | `/api/v1/calendar/events` | `calendar:read` | Query: `account_id, from, to, limit` (defaults now → +30 days) |
+| GET | `/api/v1/calendar/upcoming` | `calendar:read` (+`sync:trigger` when `refresh=true`) | Events starting within `within_minutes` (default 60), soonest first, with `minutes_until_start`. `refresh=true` re-pulls calendars first. Built for reminder polling. |
 | POST | `/api/v1/calendar/events` | `calendar:write` | `{ account_id, title, start, end, timezone?, attendees[]?, description?, location?, online_meeting? (default true), all_day? }` |
 | DELETE | `/api/v1/calendar/events/{id}` | `calendar:write` | Cancel (notifies attendees) |
 
@@ -166,7 +167,22 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"account_id":"<account-id>","title":"Kickoff","start":"2026-09-15T10:00:00+01:00","end":"2026-09-15T10:30:00+01:00","attendees":["jane@example.com"]}' \
   $BASE/api/v1/calendar/events
+
+# Reminder poll (run every 5 minutes from your agent): anything starting in the next 30 minutes?
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "$BASE/api/v1/calendar/upcoming?within_minutes=30&refresh=true&include_in_progress=false"
+# -> data.count, data.events[].title / start_at / minutes_until_start / meeting_link / account
 ```
+
+## Recipe: reminders 30 minutes before a meeting (Base44 or any agent)
+
+Email Hub stores calendars but does not push notifications. An agent gets reliable reminders with a scheduled job:
+
+1. Every 5 minutes call `GET /api/v1/calendar/upcoming?within_minutes=30&refresh=true&include_in_progress=false`.
+2. For each returned event whose `id` you have not reminded about yet, send the reminder (title, `minutes_until_start`, `meeting_link`, attendees) and remember the `id`.
+3. Optionally call `POST /api/v1/sync` every 15-30 minutes so new mail and AI analysis stay current between the daily scheduled sync.
+
+Counting is a plain query: `GET /api/v1/calendar/events?from=<today 00:00>&to=<today 23:59>` and read `data.length`, or ask `POST /api/v1/ai/assistant` with "How many meetings do I have today?".
 
 ## Scheduled sync
 
