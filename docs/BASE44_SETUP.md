@@ -46,7 +46,9 @@ Timestamps are ISO 8601 (UTC). Ids are UUIDs. Lists are newest first.
 
 Endpoints:
 - GET  /api/v1/me                       verify access (user, role, scopes)
-- GET  /api/v1/accounts                 connected mailboxes: id, provider (google|microsoft), email, status
+- GET  /api/v1/accounts                 connected mailboxes: id, provider (google|microsoft), email, display_name, status.
+                                        meta.total is the number of mailboxes - list EVERY item by its email address
+                                        (several mailboxes can share the same display_name).
 - GET  /api/v1/emails                   search/list. Query params: q (text), from (sender), unread=true, starred=true,
                                         folder (inbox|sent|archive), category, priority (urgent|high|normal|low),
                                         requires_response=true, account_id, since, until (ISO), limit (max 100), offset.
@@ -73,6 +75,9 @@ Endpoints:
                                         Email Hub's own assistant; it can search, summarise, draft, reply and schedule.
 
 Rules:
+- Always call the API for current data when the user asks about accounts, emails or events. Never answer
+  from an earlier result - mailboxes, emails and events change all the time.
+- When listing mailboxes, enumerate every item in data by email address and state meta.total.
 - Never send email or create calendar events unless the user explicitly asked for that action.
 - For "today"/"tomorrow" compute from/to in the user's timezone and pass ISO timestamps.
 - Count emails with meta.total; count events with the length of data.

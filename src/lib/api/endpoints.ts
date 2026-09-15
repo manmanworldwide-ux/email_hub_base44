@@ -50,7 +50,8 @@ export const ENDPOINTS: EndpointDoc[] = [
     method: "GET",
     path: "/api/v1/accounts",
     summary: "List connected mailboxes",
-    description: "Gmail and Outlook accounts connected by the user, with sync status. Tokens are never returned.",
+    description:
+      "Every Gmail and Outlook account connected by the user, with sync status; meta.total gives the count. Several mailboxes may share a display_name, so identify them by email. Tokens are never returned.",
     tag: "Accounts",
     scope: "accounts:read",
   },
