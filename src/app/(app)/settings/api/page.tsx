@@ -48,6 +48,23 @@ export default async function ApiSettingsPage() {
       )}
 
       <Card className="mt-6">
+        <CardHeader title="Give an AI agent a link" description="No pasting or uploads needed - agents can read these public URLs themselves." />
+        <div className="grid gap-4 px-5 py-4 text-xs lg:grid-cols-2">
+          <div>
+            <p className="font-medium text-neutral-900">Agent guide (plain text: auth, rules, every endpoint, recipes)</p>
+            <pre className="mt-2 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-[11px] leading-5 text-neutral-100">{`${base}/api/v1/agent-guide`}</pre>
+            <p className="mt-3 font-medium text-neutral-900">OpenAPI 3.1 spec (for tools that import APIs)</p>
+            <pre className="mt-2 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-[11px] leading-5 text-neutral-100">{`${base}/api/v1/openapi.json`}</pre>
+          </div>
+          <div>
+            <p className="font-medium text-neutral-900">One-line instruction to paste into the agent</p>
+            <pre className="mt-2 whitespace-pre-wrap rounded-md bg-neutral-900 p-3 font-mono text-[11px] leading-5 text-neutral-100">{`Read ${base}/api/v1/agent-guide and use the Email Hub API it describes. Authenticate every request with the header "Authorization: Bearer <my token>". Always fetch live data and follow the rules in the guide.`}</pre>
+            <p className="mt-2 text-neutral-500">Then hand it the token created above. Ask it to call GET /api/v1/me to confirm.</p>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="mt-6">
         <CardHeader title="Connect an AI agent (Base44 or any HTTP client)" description="Every endpoint accepts the token as a Bearer token or an x-api-key header." />
         <div className="grid gap-4 px-5 py-4 text-xs lg:grid-cols-2">
           <div>

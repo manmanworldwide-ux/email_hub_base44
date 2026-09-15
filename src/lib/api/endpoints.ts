@@ -559,6 +559,14 @@ export const ENDPOINTS: EndpointDoc[] = [
   },
   {
     method: "GET",
+    path: "/api/v1/agent-guide",
+    summary: "Plain-text API guide for AI agents",
+    description: "Everything an agent needs (auth, rules, endpoints, data shapes, recipes) as one readable page. Give agents this URL instead of pasting docs.",
+    tag: "Meta",
+    scope: "public",
+  },
+  {
+    method: "GET",
     path: "/api/health",
     summary: "Health check",
     tag: "Meta",

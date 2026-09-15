@@ -16,7 +16,19 @@ Copy the `ehk_live_…` token - it is shown once. Revoke it from the same page w
 
 ## 2. Give Base44 the API description (pick whichever its UI offers)
 
-### Option A - OpenAPI URL (best)
+### Option 0 - Just a link (works everywhere, recommended)
+
+Base44 can read a public page by URL, so paste this single instruction into its prompt:
+
+```
+Read https://email-hub-base44.vercel.app/api/v1/agent-guide and use the Email Hub API it describes.
+Authenticate every request with the header "Authorization: Bearer <my token>".
+Always fetch live data and follow the rules in the guide.
+```
+
+The guide is generated from the live API (auth, rules, every endpoint, data shapes, recipes), so it never goes stale.
+
+### Option A - OpenAPI URL
 If Base44 has an "Import API / OpenAPI / Swagger" field, paste:
 
 ```
